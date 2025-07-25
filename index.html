@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>迷い森からの脱出</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>🌲 迷い森からの脱出</h1>
+            <div class="game-info">
+                <div class="steps">歩数: <span id="stepCount">0</span></div>
+                <div class="status">状態: <span id="gameStatus">探索中</span></div>
+            </div>
+        </header>
+        
+        <main class="game-main">
+            <div class="game-field" id="gameField">
+                <!-- ゲームフィールドがここに生成されます -->
+            </div>
+            
+            <div class="game-controls">
+                <div class="control-buttons">
+                    <button class="control-btn" id="upBtn">↑</button>
+                    <div class="control-row">
+                        <button class="control-btn" id="leftBtn">←</button>
+                        <button class="control-btn" id="downBtn">↓</button>
+                        <button class="control-btn" id="rightBtn">→</button>
+                    </div>
+                </div>
+                <button class="restart-btn" id="restartBtn">新しいゲーム</button>
+            </div>
+        </main>
+        
+        <footer class="game-footer">
+            <p>🎯 出口を探して森から脱出しよう！</p>
+            <p>矢印キーまたはボタンで移動</p>
+        </footer>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,231 @@
+/* リセットCSS */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Arial', sans-serif;
+  background: linear-gradient(135deg, #2d5a27 0%, #4a7c59 100%);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+}
+
+.game-container {
+  max-width: 600px;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+/* ヘッダー */
+.game-header {
+  background: linear-gradient(45deg, #3a6b35 0%, #4a7c59 100%);
+  color: white;
+  padding: 20px;
+  text-align: center;
+}
+
+.game-header h1 {
+  font-size: 1.8em;
+  margin-bottom: 10px;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-info {
+  display: flex;
+  justify-content: space-around;
+  font-size: 1.1em;
+  font-weight: bold;
+}
+
+/* ゲームフィールド */
+.game-main {
+  padding: 20px;
+}
+
+.game-field {
+  display: grid;
+  grid-template-columns: repeat(10, 1fr);
+  gap: 2px;
+  background: #2d5a27;
+  padding: 10px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  aspect-ratio: 1/1;
+  max-width: 400px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cell {
+  aspect-ratio: 1/1;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2em;
+  font-weight: bold;
+  transition: all 0.3s ease;
+  position: relative;
+}
+
+/* セルの種類 */
+.cell.path {
+  background: #90EE90;
+  color: #2d5a27;
+}
+
+.cell.wall {
+  background: #654321;
+  color: #8B4513;
+}
+
+.cell.player {
+  background: #FFD700;
+  color: #FF6B6B;
+  animation: playerPulse 1s infinite alternate;
+}
+
+.cell.exit {
+  background: #FF69B4;
+  color: white;
+  animation: exitGlow 1s infinite alternate;
+}
+
+.cell.unknown {
+  background: #444;
+  color: #666;
+}
+
+/* アニメーション */
+@keyframes playerPulse {
+  0% { transform: scale(1); }
+  100% { transform: scale(1.1); }
+}
+
+@keyframes exitGlow {
+  0% { box-shadow: 0 0 5px #FF69B4; }
+  100% { box-shadow: 0 0 15px #FF69B4; }
+}
+
+/* コントロール */
+.game-controls {
+  text-align: center;
+}
+
+.control-buttons {
+  display: inline-block;
+  margin-bottom: 15px;
+}
+
+.control-row {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.control-btn {
+  width: 60px;
+  height: 60px;
+  border: none;
+  border-radius: 50%;
+  background: linear-gradient(45deg, #4a7c59 0%, #5a8c69 100%);
+  color: white;
+  font-size: 1.5em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.control-btn:hover {
+  background: linear-gradient(45deg, #5a8c69 0%, #6a9c79 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+.control-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.restart-btn {
+  background: linear-gradient(45deg, #FF6B6B 0%, #FF8E8E 100%);
+  color: white;
+  border: none;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-size: 1.1em;
+  font-weight: bold;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.restart-btn:hover {
+  background: linear-gradient(45deg, #FF8E8E 0%, #FFB1B1 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* フッター */
+.game-footer {
+  background: #f8f9fa;
+  padding: 15px;
+  text-align: center;
+  color: #666;
+  font-size: 0.9em;
+}
+
+/* レスポンシブ対応 */
+@media (max-width: 480px) {
+  .game-container {
+      margin: 5px;
+      border-radius: 15px;
+  }
+  
+  .game-header h1 {
+      font-size: 1.4em;
+  }
+  
+  .game-info {
+      font-size: 0.9em;
+  }
+  
+  .game-field {
+      max-width: 300px;
+  }
+  
+  .cell {
+      font-size: 1em;
+  }
+  
+  .control-btn {
+      width: 50px;
+      height: 50px;
+      font-size: 1.2em;
+  }
+  
+  .game-footer {
+      font-size: 0.8em;
+  }
+}
+
+@media (max-width: 320px) {
+  .game-field {
+      max-width: 250px;
+  }
+  
+  .control-btn {
+      width: 45px;
+      height: 45px;
+      font-size: 1.1em;
+  }
+}
