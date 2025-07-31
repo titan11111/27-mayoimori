@@ -43,6 +43,45 @@ const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 const restartBtn = document.getElementById('restartBtn');
 
+// オーディオ設定
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let ambienceStarted = false;
+
+function playStepSound() {
+    audioCtx.resume();
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = 'square';
+    osc.frequency.value = 200;
+    gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.1);
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+    osc.start();
+    osc.stop(audioCtx.currentTime + 0.1);
+}
+
+function playForestAmbience() {
+    audioCtx.resume();
+    const bufferSize = audioCtx.sampleRate * 2;
+    const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+    const output = noiseBuffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+        output[i] = (Math.random() * 2 - 1) * 0.02;
+    }
+    const source = audioCtx.createBufferSource();
+    source.buffer = noiseBuffer;
+    source.loop = true;
+
+    const filter = audioCtx.createBiquadFilter();
+    filter.type = 'lowpass';
+    filter.frequency.value = 1000;
+
+    source.connect(filter);
+    filter.connect(audioCtx.destination);
+    source.start();
+}
+
 // ゲーム初期化
 function initGame() {
     gameState = {
@@ -125,7 +164,11 @@ function updateDisplay() {
             } else if (x === gameState.player.x && y === gameState.player.y) {
                 // プレイヤーの位置
                 cell.classList.add(CELL_TYPES.PLAYER);
-                cell.textContent = CELL_SYMBOLS.player;
+                const img = document.createElement('img');
+                img.src = 'images/player.svg';
+                img.className = 'player-img';
+                img.alt = 'player';
+                cell.appendChild(img);
             } else if (x === gameState.exit.x && y === gameState.exit.y) {
                 // 出口
                 cell.classList.add(CELL_TYPES.EXIT);
@@ -177,6 +220,12 @@ function movePlayer(dx, dy) {
     gameState.player.x = newX;
     gameState.player.y = newY;
     gameState.steps++;
+
+    playStepSound();
+    if (!ambienceStarted) {
+        playForestAmbience();
+        ambienceStarted = true;
+    }
     
     // 視界更新
     updateVision();
@@ -212,12 +261,22 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
-// ボタンイベント
-upBtn.addEventListener('click', () => movePlayer(0, -1));
-downBtn.addEventListener('click', () => movePlayer(0, 1));
-leftBtn.addEventListener('click', () => movePlayer(-1, 0));
-rightBtn.addEventListener('click', () => movePlayer(1, 0));
-restartBtn.addEventListener('click', initGame);
+// ボタンイベント（クリック・タッチ共通）
+[
+    { btn: upBtn, dx: 0, dy: -1 },
+    { btn: downBtn, dx: 0, dy: 1 },
+    { btn: leftBtn, dx: -1, dy: 0 },
+    { btn: rightBtn, dx: 1, dy: 0 }
+].forEach(({ btn, dx, dy }) => {
+    btn.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        movePlayer(dx, dy);
+    });
+});
+restartBtn.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    initGame();
+});
 
 // タッチイベント（スマホ対応）
 let startX = 0;

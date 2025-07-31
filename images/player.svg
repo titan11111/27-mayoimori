@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <style>
+    .leg {
+      animation: walk 0.4s infinite alternate;
+      transform-origin: 12px 17px;
+    }
+    .right {
+      animation-direction: alternate-reverse;
+    }
+    @keyframes walk {
+      from { transform: rotate(20deg); }
+      to { transform: rotate(-20deg); }
+    }
+  </style>
+  <circle cx="12" cy="5" r="4" fill="#ffcc99"/>
+  <rect x="10" y="9" width="4" height="8" fill="#00f"/>
+  <line class="leg left" x1="12" y1="17" x2="6" y2="24" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+  <line class="leg right" x1="12" y1="17" x2="18" y2="24" stroke="#000" stroke-width="2" stroke-linecap="round"/>
+</svg>
