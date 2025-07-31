@@ -7,7 +7,9 @@
 
 body {
   font-family: 'Arial', sans-serif;
-  background: linear-gradient(135deg, #2d5a27 0%, #4a7c59 100%);
+  background: linear-gradient(135deg, rgba(45, 90, 39, 0.7) 0%, rgba(74, 124, 89, 0.7) 100%),
+              url('haikei.png') no-repeat center center fixed;
+  background-size: cover;
   min-height: 100vh;
   display: flex;
   justify-content: center;
@@ -93,6 +95,12 @@ body {
   animation: playerPulse 1s infinite alternate;
 }
 
+.player-img {
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
 .cell.exit {
   background: #FF69B4;
   color: white;
@@ -132,17 +140,18 @@ body {
 }
 
 .control-btn {
-  width: 60px;
-  height: 60px;
+  width: 78px;
+  height: 78px;
   border: none;
   border-radius: 50%;
   background: linear-gradient(45deg, #4a7c59 0%, #5a8c69 100%);
   color: white;
-  font-size: 1.5em;
+  font-size: 1.95em;
   font-weight: bold;
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  touch-action: manipulation;
 }
 
 .control-btn:hover {
@@ -208,9 +217,9 @@ body {
   }
   
   .control-btn {
-      width: 50px;
-      height: 50px;
-      font-size: 1.2em;
+      width: 65px;
+      height: 65px;
+      font-size: 1.6em;
   }
   
   .game-footer {
@@ -224,8 +233,8 @@ body {
   }
   
   .control-btn {
-      width: 45px;
-      height: 45px;
-      font-size: 1.1em;
+      width: 59px;
+      height: 59px;
+      font-size: 1.4em;
   }
 }
