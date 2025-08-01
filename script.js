@@ -192,11 +192,7 @@ function updateDisplay() {
             const cell = document.createElement('div');
             cell.className = 'cell';
             
-            if (!gameState.discovered[y][x]) {
-                // 未発見のセル
-                cell.classList.add(CELL_TYPES.UNKNOWN);
-                cell.textContent = CELL_SYMBOLS.unknown;
-            } else if (x === gameState.player.x && y === gameState.player.y) {
+            if (x === gameState.player.x && y === gameState.player.y) {
                 // プレイヤーの位置
                 cell.classList.add(CELL_TYPES.PLAYER);
                 const img = document.createElement('img');
@@ -208,6 +204,10 @@ function updateDisplay() {
                 // CPUの位置
                 cell.classList.add(CELL_TYPES.CPU);
                 cell.textContent = CELL_SYMBOLS.cpu;
+            } else if (!gameState.discovered[y][x]) {
+                // 未発見のセル
+                cell.classList.add(CELL_TYPES.UNKNOWN);
+                cell.textContent = CELL_SYMBOLS.unknown;
             } else if (x === gameState.exit.x && y === gameState.exit.y) {
                 // 出口
                 cell.classList.add(CELL_TYPES.EXIT);
@@ -285,6 +285,26 @@ function moveCPU() {
     if (path.length > 1) {
         gameState.cpu.x = path[1].x;
         gameState.cpu.y = path[1].y;
+    } else {
+        // パスが見つからない場合はランダムに移動
+        const dirs = [
+            { dx: 1, dy: 0 },
+            { dx: -1, dy: 0 },
+            { dx: 0, dy: 1 },
+            { dx: 0, dy: -1 }
+        ];
+        const moves = dirs
+            .map(({ dx, dy }) => ({ x: gameState.cpu.x + dx, y: gameState.cpu.y + dy }))
+            .filter(({ x, y }) =>
+                x >= 0 && x < GAME_CONFIG.FIELD_SIZE &&
+                y >= 0 && y < GAME_CONFIG.FIELD_SIZE &&
+                gameState.field[y][x] !== CELL_TYPES.WALL
+            );
+        if (moves.length) {
+            const move = moves[Math.floor(Math.random() * moves.length)];
+            gameState.cpu.x = move.x;
+            gameState.cpu.y = move.y;
+        }
     }
 
     if (gameState.cpu.x === gameState.exit.x && gameState.cpu.y === gameState.exit.y) {
