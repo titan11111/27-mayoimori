@@ -9,9 +9,11 @@ const GAME_CONFIG = {
 let gameState = {
     field: [],
     player: { x: 0, y: 0 },
+    cpu: { x: 0, y: 0 },
     exit: { x: 0, y: 0 },
     steps: 0,
     gameOver: false,
+    winner: null,
     discovered: []
 };
 
@@ -21,6 +23,7 @@ const CELL_TYPES = {
     PATH: 'path',
     PLAYER: 'player',
     EXIT: 'exit',
+    CPU: 'cpu',
     UNKNOWN: 'unknown'
 };
 
@@ -30,6 +33,7 @@ const CELL_SYMBOLS = {
     path: '　',
     player: '🧑',
     exit: '🚪',
+    cpu: '🤖',
     unknown: '？'
 };
 
@@ -46,6 +50,7 @@ const restartBtn = document.getElementById('restartBtn');
 // オーディオ設定
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let ambienceStarted = false;
+let cpuInterval;
 
 function playStepSound() {
     audioCtx.resume();
@@ -82,20 +87,44 @@ function playForestAmbience() {
     source.start();
 }
 
+function finishGame(winner) {
+    gameState.gameOver = true;
+    gameState.winner = winner;
+    clearInterval(cpuInterval);
+}
+
 // ゲーム初期化
 function initGame() {
     gameState = {
         field: [],
         player: { x: 0, y: 0 },
+        cpu: { x: 0, y: 0 },
         exit: { x: 0, y: 0 },
         steps: 0,
         gameOver: false,
+        winner: null,
         discovered: []
     };
-    
+
     generateField();
     updateDisplay();
     updateUI();
+    clearInterval(cpuInterval);
+    cpuInterval = setInterval(moveCPU, 500);
+}
+
+function getRandomFarCell() {
+    const size = GAME_CONFIG.FIELD_SIZE;
+    let x, y;
+    do {
+        x = Math.floor(Math.random() * (size - 2)) + 1;
+        y = Math.floor(Math.random() * (size - 2)) + 1;
+    } while (
+        gameState.field[y][x] !== CELL_TYPES.PATH ||
+        (Math.abs(x - gameState.player.x) + Math.abs(y - gameState.player.y) < size / 2) ||
+        (x === gameState.exit.x && y === gameState.exit.y)
+    );
+    return { x, y };
 }
 
 // フィールド生成
@@ -130,7 +159,13 @@ function generateField() {
     gameState.exit.x = size - 2;
     gameState.exit.y = size - 2;
     gameState.field[size - 2][size - 2] = CELL_TYPES.PATH;
-    
+
+    // CPUの開始位置を設定（プレイヤーと離れた位置）
+    const cpuPos = getRandomFarCell();
+    gameState.cpu.x = cpuPos.x;
+    gameState.cpu.y = cpuPos.y;
+    gameState.field[cpuPos.y][cpuPos.x] = CELL_TYPES.PATH;
+
     // 開始位置周辺を発見済みにする
     updateVision();
 }
@@ -169,6 +204,10 @@ function updateDisplay() {
                 img.className = 'player-img';
                 img.alt = 'player';
                 cell.appendChild(img);
+            } else if (x === gameState.cpu.x && y === gameState.cpu.y) {
+                // CPUの位置
+                cell.classList.add(CELL_TYPES.CPU);
+                cell.textContent = CELL_SYMBOLS.cpu;
             } else if (x === gameState.exit.x && y === gameState.exit.y) {
                 // 出口
                 cell.classList.add(CELL_TYPES.EXIT);
@@ -188,14 +227,72 @@ function updateDisplay() {
 // UI の更新
 function updateUI() {
     stepCount.textContent = gameState.steps;
-    
+
     if (gameState.gameOver) {
-        gameStatus.textContent = 'クリア！';
-        gameStatus.style.color = '#FF69B4';
+        if (gameState.winner === 'player') {
+            gameStatus.textContent = 'プレイヤーの勝ち！';
+            gameStatus.style.color = '#FF69B4';
+        } else if (gameState.winner === 'cpu') {
+            gameStatus.textContent = 'CPUの勝ち！';
+            gameStatus.style.color = '#FF4500';
+        }
     } else {
         gameStatus.textContent = '探索中';
         gameStatus.style.color = '#4a7c59';
     }
+}
+
+function findPath(startX, startY, targetX, targetY) {
+    const size = GAME_CONFIG.FIELD_SIZE;
+    const queue = [{ x: startX, y: startY, path: [] }];
+    const visited = Array.from({ length: size }, () => Array(size).fill(false));
+    visited[startY][startX] = true;
+    const dirs = [
+        { dx: 1, dy: 0 },
+        { dx: -1, dy: 0 },
+        { dx: 0, dy: 1 },
+        { dx: 0, dy: -1 }
+    ];
+
+    while (queue.length) {
+        const { x, y, path } = queue.shift();
+        if (x === targetX && y === targetY) {
+            return [...path, { x, y }];
+        }
+        for (const { dx, dy } of dirs) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx < 0 || ny < 0 || nx >= size || ny >= size) continue;
+            if (visited[ny][nx]) continue;
+            if (gameState.field[ny][nx] === CELL_TYPES.WALL) continue;
+            visited[ny][nx] = true;
+            queue.push({ x: nx, y: ny, path: [...path, { x, y }] });
+        }
+    }
+    return [{ x: startX, y: startY }];
+}
+
+function moveCPU() {
+    if (gameState.gameOver) return;
+
+    const path = findPath(
+        gameState.cpu.x,
+        gameState.cpu.y,
+        gameState.exit.x,
+        gameState.exit.y
+    );
+
+    if (path.length > 1) {
+        gameState.cpu.x = path[1].x;
+        gameState.cpu.y = path[1].y;
+    }
+
+    if (gameState.cpu.x === gameState.exit.x && gameState.cpu.y === gameState.exit.y) {
+        finishGame('cpu');
+    }
+
+    updateDisplay();
+    updateUI();
 }
 
 // プレイヤーの移動
@@ -229,12 +326,12 @@ function movePlayer(dx, dy) {
     
     // 視界更新
     updateVision();
-    
+
     // 出口に到達したかチェック
     if (newX === gameState.exit.x && newY === gameState.exit.y) {
-        gameState.gameOver = true;
+        finishGame('player');
     }
-    
+
     updateDisplay();
     updateUI();
 }
