@@ -46,6 +46,7 @@ const downBtn = document.getElementById('downBtn');
 const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 const restartBtn = document.getElementById('restartBtn');
+const bgm = document.getElementById('bgm');
 
 // オーディオ設定
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -341,6 +342,7 @@ function movePlayer(dx, dy) {
     playStepSound();
     if (!ambienceStarted) {
         playForestAmbience();
+        bgm.play();
         ambienceStarted = true;
     }
     
