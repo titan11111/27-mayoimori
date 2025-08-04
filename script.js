@@ -155,6 +155,10 @@ function generateField() {
     gameState.player.x = 1;
     gameState.player.y = 1;
     gameState.field[1][1] = CELL_TYPES.PATH;
+
+    // プレイヤーが開始直後に動けるように右と下のマスを必ず道にする
+    gameState.field[1][2] = CELL_TYPES.PATH;
+    gameState.field[2][1] = CELL_TYPES.PATH;
     
     // 出口の位置を設定（右下の角近く）
     gameState.exit.x = size - 2;
