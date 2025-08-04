@@ -48,6 +48,16 @@ const rightBtn = document.getElementById('rightBtn');
 const restartBtn = document.getElementById('restartBtn');
 const bgm = document.getElementById('bgm');
 
+const playerWinsEl = document.getElementById('playerWins');
+const cpuWinsEl = document.getElementById('cpuWins');
+let playerWins = 0;
+let cpuWins = 0;
+
+function updateScoreboard() {
+    playerWinsEl.textContent = playerWins;
+    cpuWinsEl.textContent = cpuWins;
+}
+
 // オーディオ設定
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let ambienceStarted = false;
@@ -91,6 +101,11 @@ function playForestAmbience() {
 function finishGame(winner) {
     gameState.gameOver = true;
     gameState.winner = winner;
+    if (winner === 'player') {
+        playerWins++;
+    } else if (winner === 'cpu') {
+        cpuWins++;
+    }
     clearInterval(cpuInterval);
 }
 
@@ -232,6 +247,7 @@ function updateDisplay() {
 // UI の更新
 function updateUI() {
     stepCount.textContent = gameState.steps;
+    updateScoreboard();
 
     if (gameState.gameOver) {
         if (gameState.winner === 'player') {
