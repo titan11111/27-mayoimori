@@ -128,6 +128,39 @@ function getRandomFarCell() {
     return { x, y };
 }
 
+// Ensure the player isn't surrounded by walls at the start
+function ensurePlayerHasPath() {
+    const { x, y } = gameState.player;
+    const size = GAME_CONFIG.FIELD_SIZE;
+    const directions = [
+        { dx: 1, dy: 0 },
+        { dx: 0, dy: 1 },
+        { dx: -1, dy: 0 },
+        { dx: 0, dy: -1 }
+    ];
+
+    const hasPath = directions.some(({ dx, dy }) => {
+        const nx = x + dx;
+        const ny = y + dy;
+        return (
+            nx >= 0 && nx < size &&
+            ny >= 0 && ny < size &&
+            gameState.field[ny][nx] === CELL_TYPES.PATH
+        );
+    });
+
+    if (!hasPath) {
+        for (const { dx, dy } of directions) {
+            const nx = x + dx;
+            const ny = y + dy;
+            if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+                gameState.field[ny][nx] = CELL_TYPES.PATH;
+                break;
+            }
+        }
+    }
+}
+
 // フィールド生成
 function generateField() {
     const size = GAME_CONFIG.FIELD_SIZE;
@@ -155,6 +188,9 @@ function generateField() {
     gameState.player.x = 1;
     gameState.player.y = 1;
     gameState.field[1][1] = CELL_TYPES.PATH;
+
+    // プレイヤーが初期位置で動けなくならないよう通路を確保
+    ensurePlayerHasPath();
     
     // 出口の位置を設定（右下の角近く）
     gameState.exit.x = size - 2;
