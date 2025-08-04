@@ -40,11 +40,16 @@ body {
   text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.game-info {
+
+.game-info, .scoreboard {
   display: flex;
   justify-content: space-around;
   font-size: 1.1em;
   font-weight: bold;
+}
+
+.scoreboard {
+  margin-bottom: 10px;
 }
 
 /* ゲームフィールド */
