@@ -211,35 +211,49 @@ body {
 
 /* レスポンシブ対応 */
 @media (max-width: 480px) {
+  body {
+      align-items: flex-start;
+      padding-top: 5px;
+  }
+
   .game-container {
       margin: 5px;
       border-radius: 15px;
   }
-  
+
+  .game-header {
+      padding: 10px;
+  }
+
   .game-header h1 {
       font-size: 1.4em;
   }
-  
+
   .game-info {
       font-size: 0.9em;
   }
-  
+
+  .game-main {
+      padding: 10px;
+  }
+
   .game-field {
       max-width: 300px;
   }
-  
+
   .cell {
       font-size: 1em;
   }
-  
+
   .control-btn {
       width: 65px;
       height: 65px;
       font-size: 1.6em;
   }
-  
+
   .game-footer {
       font-size: 0.8em;
+      padding: 10px;
   }
 }
 
