@@ -378,40 +378,50 @@ function movePlayer(dx, dy) {
     updateUI();
 }
 
-// キーボードイベント
+// キーボード操作の連続入力に対応
+const KEY_MAP = {
+    ArrowUp: { dx: 0, dy: -1 },
+    ArrowDown: { dx: 0, dy: 1 },
+    ArrowLeft: { dx: -1, dy: 0 },
+    ArrowRight: { dx: 1, dy: 0 }
+};
+
+const keyIntervals = {};
+
 document.addEventListener('keydown', (e) => {
-    switch(e.key) {
-        case 'ArrowUp':
-            e.preventDefault();
-            movePlayer(0, -1);
-            break;
-        case 'ArrowDown':
-            e.preventDefault();
-            movePlayer(0, 1);
-            break;
-        case 'ArrowLeft':
-            e.preventDefault();
-            movePlayer(-1, 0);
-            break;
-        case 'ArrowRight':
-            e.preventDefault();
-            movePlayer(1, 0);
-            break;
+    const move = KEY_MAP[e.key];
+    if (!move || keyIntervals[e.key]) return;
+    e.preventDefault();
+    movePlayer(move.dx, move.dy);
+    keyIntervals[e.key] = setInterval(() => movePlayer(move.dx, move.dy), 100);
+});
+
+document.addEventListener('keyup', (e) => {
+    if (keyIntervals[e.key]) {
+        clearInterval(keyIntervals[e.key]);
+        delete keyIntervals[e.key];
     }
 });
 
-// ボタンイベント（クリック・タッチ共通）
+// ボタン操作（クリック・タッチ共通）の連続入力に対応
 [
     { btn: upBtn, dx: 0, dy: -1 },
     { btn: downBtn, dx: 0, dy: 1 },
     { btn: leftBtn, dx: -1, dy: 0 },
     { btn: rightBtn, dx: 1, dy: 0 }
 ].forEach(({ btn, dx, dy }) => {
-    btn.addEventListener('pointerdown', (e) => {
+    let interval;
+    const start = (e) => {
         e.preventDefault();
         movePlayer(dx, dy);
-    });
+        interval = setInterval(() => movePlayer(dx, dy), 100);
+    };
+    const stop = () => clearInterval(interval);
+    btn.addEventListener('pointerdown', start);
+    btn.addEventListener('pointerup', stop);
+    btn.addEventListener('pointerleave', stop);
 });
+
 restartBtn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     initGame();
