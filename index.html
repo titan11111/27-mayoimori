@@ -15,16 +15,26 @@
                 <div>CPU <span id="cpuWins">0</span>勝</div>
             </div>
             <div class="game-info">
-                <div class="steps">歩数: <span id="stepCount">0</span></div>
+                <div class="steps">Steps: <span id="stepCount">0</span> (Fewer is better!)</div>
                 <div class="status">状態: <span id="gameStatus">探索中</span></div>
             </div>
+            <div class="cpu-behavior">CPU target: Nearest book</div>
         </header>
-        
+
         <main class="game-main">
+            <p class="game-objective">Reach the book 📖 before the CPU does. Avoid trees 🌲. Explore the hidden map ❓!</p>
             <div class="game-field" id="gameField">
                 <!-- ゲームフィールドがここに生成されます -->
             </div>
-            
+            <div class="legend">
+                <span>🟩 Path</span>
+                <span>🌲 Tree</span>
+                <span>❓ Unexplored</span>
+                <span>📖 Book</span>
+                <span>🤖 CPU</span>
+                <span>🧍 You</span>
+            </div>
+
             <div class="game-controls">
                 <div class="control-buttons">
                     <button class="control-btn" id="upBtn">↑</button>
@@ -37,7 +47,7 @@
                 <button class="restart-btn" id="restartBtn">新しいゲーム</button>
             </div>
         </main>
-        
+
         <footer class="game-footer">
             <p>🎯 出口を探して森から脱出しよう！</p>
             <p>矢印キーまたはボタンで移動</p>
@@ -45,6 +55,13 @@
     </div>
 
     <audio id="bgm" src="audio/Tokyo_Dungeon.mp3" loop></audio>
+    <div id="winModal" class="modal hidden">
+        <div class="modal-content">
+            <p id="winMessage"></p>
+            <button id="playAgainBtn">Play Again</button>
+            <button id="closeModalBtn">Close</button>
+        </div>
+    </div>
 
     <script src="script.js"></script>
 </body>

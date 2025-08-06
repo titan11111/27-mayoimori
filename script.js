@@ -11,6 +11,8 @@ let gameState = {
     player: { x: 0, y: 0 },
     cpu: { x: 0, y: 0 },
     exit: { x: 0, y: 0 },
+    axe: null,
+    playerHasAxe: false,
     steps: 0,
     gameOver: false,
     winner: null,
@@ -24,7 +26,8 @@ const CELL_TYPES = {
     PLAYER: 'player',
     EXIT: 'exit',
     CPU: 'cpu',
-    UNKNOWN: 'unknown'
+    UNKNOWN: 'unknown',
+    AXE: 'axe'
 };
 
 // セルの表示文字
@@ -32,9 +35,10 @@ const CELL_SYMBOLS = {
     wall: '🌳',
     path: '　',
     player: '🧑',
-    exit: '🚪',
+    exit: '📖',
     cpu: '🤖',
-    unknown: '？'
+    unknown: '？',
+    axe: '🪓'
 };
 
 // DOM要素の取得
@@ -47,6 +51,10 @@ const leftBtn = document.getElementById('leftBtn');
 const rightBtn = document.getElementById('rightBtn');
 const restartBtn = document.getElementById('restartBtn');
 const bgm = document.getElementById('bgm');
+const winModal = document.getElementById('winModal');
+const winMessage = document.getElementById('winMessage');
+const playAgainBtn = document.getElementById('playAgainBtn');
+const closeModalBtn = document.getElementById('closeModalBtn');
 
 const playerWinsEl = document.getElementById('playerWins');
 const cpuWinsEl = document.getElementById('cpuWins');
@@ -103,11 +111,26 @@ function finishGame(winner) {
     gameState.winner = winner;
     if (winner === 'player') {
         playerWins++;
+        showWinModal();
     } else if (winner === 'cpu') {
         cpuWins++;
     }
     clearInterval(cpuInterval);
 }
+
+function showWinModal() {
+    winMessage.textContent = `You found the book in ${gameState.steps} steps! Play again?`;
+    winModal.classList.remove('hidden');
+}
+
+playAgainBtn.addEventListener('click', () => {
+    winModal.classList.add('hidden');
+    initGame();
+});
+
+closeModalBtn.addEventListener('click', () => {
+    winModal.classList.add('hidden');
+});
 
 // ゲーム初期化
 function initGame() {
@@ -116,6 +139,8 @@ function initGame() {
         player: { x: 0, y: 0 },
         cpu: { x: 0, y: 0 },
         exit: { x: 0, y: 0 },
+        axe: null,
+        playerHasAxe: false,
         steps: 0,
         gameOver: false,
         winner: null,
@@ -146,48 +171,67 @@ function getRandomFarCell() {
 // フィールド生成
 function generateField() {
     const size = GAME_CONFIG.FIELD_SIZE;
-    gameState.field = [];
-    gameState.discovered = [];
-    
-    // 基本のフィールドを生成
-    for (let y = 0; y < size; y++) {
-        gameState.field[y] = [];
-        gameState.discovered[y] = [];
-        for (let x = 0; x < size; x++) {
-            // 外周は壁にする
-            if (x === 0 || x === size - 1 || y === 0 || y === size - 1) {
-                gameState.field[y][x] = CELL_TYPES.WALL;
-            } else {
-                // ランダムに壁を配置
-                gameState.field[y][x] = Math.random() < GAME_CONFIG.WALL_PROBABILITY ? 
-                    CELL_TYPES.WALL : CELL_TYPES.PATH;
+    let valid = false;
+    while (!valid) {
+        gameState.field = [];
+        gameState.discovered = [];
+
+        for (let y = 0; y < size; y++) {
+            gameState.field[y] = [];
+            gameState.discovered[y] = [];
+            for (let x = 0; x < size; x++) {
+                if (x === 0 || x === size - 1 || y === 0 || y === size - 1) {
+                    gameState.field[y][x] = CELL_TYPES.WALL;
+                } else {
+                    gameState.field[y][x] = Math.random() < GAME_CONFIG.WALL_PROBABILITY ?
+                        CELL_TYPES.WALL : CELL_TYPES.PATH;
+                }
+                gameState.discovered[y][x] = false;
             }
-            gameState.discovered[y][x] = false;
         }
+
+        gameState.player.x = 1;
+        gameState.player.y = 1;
+        gameState.field[1][1] = CELL_TYPES.PATH;
+        gameState.field[1][2] = CELL_TYPES.PATH;
+        gameState.field[2][1] = CELL_TYPES.PATH;
+
+        gameState.exit.x = size - 2;
+        gameState.exit.y = size - 2;
+        gameState.field[size - 2][size - 2] = CELL_TYPES.PATH;
+
+        const cpuPos = getRandomFarCell();
+        gameState.cpu.x = cpuPos.x;
+        gameState.cpu.y = cpuPos.y;
+        gameState.field[cpuPos.y][cpuPos.x] = CELL_TYPES.PATH;
+
+        spawnAxe();
+        updateVision();
+
+        valid =
+            pathExists(gameState.player.x, gameState.player.y, gameState.exit.x, gameState.exit.y) &&
+            pathExists(gameState.cpu.x, gameState.cpu.y, gameState.exit.x, gameState.exit.y) &&
+            pathExists(gameState.player.x, gameState.player.y, gameState.axe.x, gameState.axe.y);
     }
-    
-    // プレイヤーの開始位置を設定（左上の角近く）
-    gameState.player.x = 1;
-    gameState.player.y = 1;
-    gameState.field[1][1] = CELL_TYPES.PATH;
+}
 
-    // プレイヤーが開始直後に動けるように右と下のマスを必ず道にする
-    gameState.field[1][2] = CELL_TYPES.PATH;
-    gameState.field[2][1] = CELL_TYPES.PATH;
-    
-    // 出口の位置を設定（右下の角近く）
-    gameState.exit.x = size - 2;
-    gameState.exit.y = size - 2;
-    gameState.field[size - 2][size - 2] = CELL_TYPES.PATH;
+function pathExists(x1, y1, x2, y2) {
+    return findPath(x1, y1, x2, y2).length > 1;
+}
 
-    // CPUの開始位置を設定（プレイヤーと離れた位置）
-    const cpuPos = getRandomFarCell();
-    gameState.cpu.x = cpuPos.x;
-    gameState.cpu.y = cpuPos.y;
-    gameState.field[cpuPos.y][cpuPos.x] = CELL_TYPES.PATH;
-
-    // 開始位置周辺を発見済みにする
-    updateVision();
+function spawnAxe() {
+    const size = GAME_CONFIG.FIELD_SIZE;
+    let x, y;
+    do {
+        x = Math.floor(Math.random() * (size - 2)) + 1;
+        y = Math.floor(Math.random() * (size - 2)) + 1;
+    } while (
+        gameState.field[y][x] !== CELL_TYPES.PATH ||
+        (x === gameState.player.x && y === gameState.player.y) ||
+        (x === gameState.cpu.x && y === gameState.cpu.y) ||
+        (x === gameState.exit.x && y === gameState.exit.y)
+    );
+    gameState.axe = { x, y, collected: false };
 }
 
 // 視界の更新
@@ -232,6 +276,10 @@ function updateDisplay() {
                 // 出口
                 cell.classList.add(CELL_TYPES.EXIT);
                 cell.textContent = CELL_SYMBOLS.exit;
+            } else if (gameState.axe && !gameState.axe.collected && x === gameState.axe.x && y === gameState.axe.y) {
+                // 斧
+                cell.classList.add(CELL_TYPES.AXE);
+                cell.textContent = CELL_SYMBOLS.axe;
             } else {
                 // 通常のセル
                 const cellType = gameState.field[y][x];
@@ -359,6 +407,11 @@ function movePlayer(dx, dy) {
     gameState.player.y = newY;
     gameState.steps++;
 
+    if (gameState.axe && !gameState.axe.collected && newX === gameState.axe.x && newY === gameState.axe.y) {
+        gameState.axe.collected = true;
+        gameState.playerHasAxe = true;
+    }
+
     playStepSound();
     if (!ambienceStarted) {
         playForestAmbience();
@@ -425,6 +478,20 @@ document.addEventListener('keyup', (e) => {
 restartBtn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
     initGame();
+});
+
+gameField.addEventListener('click', (e) => {
+    if (!gameState.playerHasAxe) return;
+    const cellEl = e.target.closest('.cell');
+    if (!cellEl) return;
+    const index = Array.from(gameField.children).indexOf(cellEl);
+    const x = index % GAME_CONFIG.FIELD_SIZE;
+    const y = Math.floor(index / GAME_CONFIG.FIELD_SIZE);
+    if (gameState.discovered[y][x] && gameState.field[y][x] === CELL_TYPES.WALL) {
+        gameState.field[y][x] = CELL_TYPES.PATH;
+        gameState.playerHasAxe = false;
+        updateDisplay();
+    }
 });
 
 // タッチイベント（スマホ対応）
