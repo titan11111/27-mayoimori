@@ -111,20 +111,38 @@ function finishGame(winner) {
     gameState.winner = winner;
     if (winner === 'player') {
         playerWins++;
-        showWinModal();
     } else if (winner === 'cpu') {
         cpuWins++;
     }
     clearInterval(cpuInterval);
+    checkMatchWinner(winner);
 }
 
-function showWinModal() {
-    winMessage.textContent = `You found the book in ${gameState.steps} steps! Play again?`;
+function checkMatchWinner(lastWinner) {
+    if (playerWins >= 2 || cpuWins >= 2) {
+        const matchWinner = playerWins >= 2 ? 'player' : 'cpu';
+        const message =
+            matchWinner === 'player'
+                ? `You won the match ${playerWins}-${cpuWins}!`
+                : `CPU won the match ${cpuWins}-${playerWins}!`;
+        showWinModal(message);
+    } else if (lastWinner === 'player') {
+        showWinModal(`You found the book in ${gameState.steps} steps! Play again?`);
+    }
+}
+
+function showWinModal(message) {
+    winMessage.textContent = message;
     winModal.classList.remove('hidden');
 }
 
 playAgainBtn.addEventListener('click', () => {
     winModal.classList.add('hidden');
+    if (playerWins >= 2 || cpuWins >= 2) {
+        playerWins = 0;
+        cpuWins = 0;
+        updateScoreboard();
+    }
     initGame();
 });
 
@@ -477,6 +495,11 @@ document.addEventListener('keyup', (e) => {
 
 restartBtn.addEventListener('pointerdown', (e) => {
     e.preventDefault();
+    if (playerWins >= 2 || cpuWins >= 2) {
+        playerWins = 0;
+        cpuWins = 0;
+        updateScoreboard();
+    }
     initGame();
 });
 
