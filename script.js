@@ -182,20 +182,6 @@ function initGame() {
     cpuInterval = setInterval(moveCPU, 500);
 }
 
-function getRandomFarCell() {
-    const size = GAME_CONFIG.FIELD_SIZE;
-    let x, y;
-    do {
-        x = Math.floor(Math.random() * (size - 2)) + 1;
-        y = Math.floor(Math.random() * (size - 2)) + 1;
-    } while (
-        gameState.field[y][x] !== CELL_TYPES.PATH ||
-        (Math.abs(x - gameState.player.x) + Math.abs(y - gameState.player.y) < size / 2) ||
-        (x === gameState.exit.x && y === gameState.exit.y)
-    );
-    return { x, y };
-}
-
 // フィールド生成
 function generateField() {
     const size = GAME_CONFIG.FIELD_SIZE;
@@ -228,10 +214,8 @@ function generateField() {
         gameState.exit.y = size - 2;
         gameState.field[size - 2][size - 2] = CELL_TYPES.PATH;
 
-        const cpuPos = getRandomFarCell();
-        gameState.cpu.x = cpuPos.x;
-        gameState.cpu.y = cpuPos.y;
-        gameState.field[cpuPos.y][cpuPos.x] = CELL_TYPES.PATH;
+        gameState.cpu.x = gameState.player.x;
+        gameState.cpu.y = gameState.player.y;
 
         spawnAxe();
         updateVision();
@@ -284,7 +268,21 @@ function updateDisplay() {
             const cell = document.createElement('div');
             cell.className = 'cell';
             
-            if (x === gameState.player.x && y === gameState.player.y) {
+            if (x === gameState.player.x && y === gameState.player.y &&
+                x === gameState.cpu.x && y === gameState.cpu.y) {
+                // プレイヤーとCPUが同じ位置
+                cell.classList.add(CELL_TYPES.PLAYER);
+                const img = document.createElement('img');
+                img.src = 'images/player.svg';
+                img.className = 'player-img';
+                img.alt = 'player';
+                cell.appendChild(img);
+
+                const cpuOverlay = document.createElement('div');
+                cpuOverlay.className = 'cpu-overlay';
+                cpuOverlay.textContent = CELL_SYMBOLS.cpu;
+                cell.appendChild(cpuOverlay);
+            } else if (x === gameState.player.x && y === gameState.player.y) {
                 // プレイヤーの位置
                 cell.classList.add(CELL_TYPES.PLAYER);
                 const img = document.createElement('img');
