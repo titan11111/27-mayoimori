@@ -210,9 +210,7 @@ function generateField() {
         gameState.field[1][2] = CELL_TYPES.PATH;
         gameState.field[2][1] = CELL_TYPES.PATH;
 
-        gameState.exit.x = size - 2;
-        gameState.exit.y = size - 2;
-        gameState.field[size - 2][size - 2] = CELL_TYPES.PATH;
+        spawnExit();
 
         gameState.cpu.x = gameState.player.x;
         gameState.cpu.y = gameState.player.y;
@@ -229,6 +227,20 @@ function generateField() {
 
 function pathExists(x1, y1, x2, y2) {
     return findPath(x1, y1, x2, y2).length > 1;
+}
+
+function spawnExit() {
+    const size = GAME_CONFIG.FIELD_SIZE;
+    let x, y;
+    do {
+        x = Math.floor(Math.random() * (size - 2)) + 1;
+        y = Math.floor(Math.random() * (size - 2)) + 1;
+    } while (
+        gameState.field[y][x] !== CELL_TYPES.PATH ||
+        (x === gameState.player.x && y === gameState.player.y)
+    );
+    gameState.exit.x = x;
+    gameState.exit.y = y;
 }
 
 function spawnAxe() {
