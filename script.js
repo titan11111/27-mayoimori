@@ -11,8 +11,6 @@ let gameState = {
     player: { x: 0, y: 0 },
     cpu: { x: 0, y: 0 },
     exit: { x: 0, y: 0 },
-    axe: null,
-    playerHasAxe: false,
     steps: 0,
     gameOver: false,
     winner: null,
@@ -26,8 +24,7 @@ const CELL_TYPES = {
     PLAYER: 'player',
     EXIT: 'exit',
     CPU: 'cpu',
-    UNKNOWN: 'unknown',
-    AXE: 'axe'
+    UNKNOWN: 'unknown'
 };
 
 // セルの表示文字
@@ -37,8 +34,7 @@ const CELL_SYMBOLS = {
     player: '🧑',
     exit: '📖',
     cpu: '🤖',
-    unknown: '？',
-    axe: '🪓'
+    unknown: '？'
 };
 
 // DOM要素の取得
@@ -167,8 +163,6 @@ function initGame() {
         player: { x: 0, y: 0 },
         cpu: { x: 0, y: 0 },
         exit: { x: 0, y: 0 },
-        axe: null,
-        playerHasAxe: false,
         steps: 0,
         gameOver: false,
         winner: null,
@@ -217,33 +211,16 @@ function generateField() {
         gameState.cpu.x = gameState.player.x;
         gameState.cpu.y = gameState.player.y;
 
-        spawnAxe();
         updateVision();
 
         valid =
             pathExists(gameState.player.x, gameState.player.y, gameState.exit.x, gameState.exit.y) &&
-            pathExists(gameState.cpu.x, gameState.cpu.y, gameState.exit.x, gameState.exit.y) &&
-            pathExists(gameState.player.x, gameState.player.y, gameState.axe.x, gameState.axe.y);
+            pathExists(gameState.cpu.x, gameState.cpu.y, gameState.exit.x, gameState.exit.y);
     }
 }
 
 function pathExists(x1, y1, x2, y2) {
     return findPath(x1, y1, x2, y2).length > 1;
-}
-
-function spawnAxe() {
-    const size = GAME_CONFIG.FIELD_SIZE;
-    let x, y;
-    do {
-        x = Math.floor(Math.random() * (size - 2)) + 1;
-        y = Math.floor(Math.random() * (size - 2)) + 1;
-    } while (
-        gameState.field[y][x] !== CELL_TYPES.PATH ||
-        (x === gameState.player.x && y === gameState.player.y) ||
-        (x === gameState.cpu.x && y === gameState.cpu.y) ||
-        (x === gameState.exit.x && y === gameState.exit.y)
-    );
-    gameState.axe = { x, y, collected: false };
 }
 
 // 視界の更新
@@ -302,10 +279,6 @@ function updateDisplay() {
                 // 出口
                 cell.classList.add(CELL_TYPES.EXIT);
                 cell.textContent = CELL_SYMBOLS.exit;
-            } else if (gameState.axe && !gameState.axe.collected && x === gameState.axe.x && y === gameState.axe.y) {
-                // 斧
-                cell.classList.add(CELL_TYPES.AXE);
-                cell.textContent = CELL_SYMBOLS.axe;
             } else {
                 // 通常のセル
                 const cellType = gameState.field[y][x];
@@ -433,11 +406,6 @@ function movePlayer(dx, dy) {
     gameState.player.y = newY;
     gameState.steps++;
 
-    if (gameState.axe && !gameState.axe.collected && newX === gameState.axe.x && newY === gameState.axe.y) {
-        gameState.axe.collected = true;
-        gameState.playerHasAxe = true;
-    }
-
     playStepSound();
     if (!ambienceStarted) {
         playForestAmbience();
@@ -509,20 +477,6 @@ restartBtn.addEventListener('pointerdown', (e) => {
         updateScoreboard();
     }
     initGame();
-});
-
-gameField.addEventListener('click', (e) => {
-    if (!gameState.playerHasAxe) return;
-    const cellEl = e.target.closest('.cell');
-    if (!cellEl) return;
-    const index = Array.from(gameField.children).indexOf(cellEl);
-    const x = index % GAME_CONFIG.FIELD_SIZE;
-    const y = Math.floor(index / GAME_CONFIG.FIELD_SIZE);
-    if (gameState.discovered[y][x] && gameState.field[y][x] === CELL_TYPES.WALL) {
-        gameState.field[y][x] = CELL_TYPES.PATH;
-        gameState.playerHasAxe = false;
-        updateDisplay();
-    }
 });
 
 // タッチイベント（スマホ対応）
